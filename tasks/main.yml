@@ -1,0 +1,97 @@
+---
+- name: Install apt-transport-https
+  apt:
+    pkg: "{{item}}"
+    update-cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - apt-transport-https
+    - python-pycurl
+  tags: rabbitmq
+
+- name: Add official rabbitmq repository signing key
+  apt_key:
+    url: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
+    state: present
+  tags: rabbitmq
+
+- name: Add rabbitmq repository
+  apt_repository:
+    repo: "deb http://www.rabbitmq.com/debian/ testing main"
+    state: present
+  register: rabbitmq_added_rmq
+  tags: rabbitmq
+
+- name: Add official erlang repository signing key
+  apt_key:
+    url: "https://packages.erlang-solutions.com/debian/erlang_solutions.asc"
+    state: present
+  tags: rabbitmq
+
+- name: Add erlang repository
+  apt_repository:
+    repo: "deb https://packages.erlang-solutions.com/debian {{ ansible_distribution_release }} contrib"
+    state: present
+  register: rabbitmq_added_erlang
+  tags: rabbitmq
+
+- name: Apt update cache
+  apt:
+    update_cache: yes
+  when: (rabbitmq_added_rmq.changed or rabbitmq_added_erlang.changed)
+  tags: rabbitmq
+
+- name: Install rabbitmq
+  apt:
+    pkg: rabbitmq-server
+    state: present
+  tags: rabbitmq
+
+- name: Copy rabbitmq env config
+  template:
+    src: "templates/rabbitmq-env.conf.j2"
+    dest: "{{ rabbitmq_env_config_path }}"
+    owner: root
+    group: root
+    mode: 0644
+  register: rabbitmq_wrote_env_config
+  tags: rabbitmq
+
+- name: Copy rabbitmq main config
+  template:
+    src: "templates/rabbitmq.config.j2"
+    dest: "{{ rabbitmq_config_path }}"
+    owner: root
+    group: root
+    mode: 0644
+  register: rabbitmq_wrote_main_config
+  tags: rabbitmq
+
+- name: Enable rabbitmq_management plugin
+  rabbitmq_plugin:
+    names: rabbitmq_management
+    state: enabled
+  tags: rabbitmq
+
+- name: Enable rabbitmq service
+  service:
+    name: rabbitmq-server
+    enabled: yes
+  tags: rabbitmq
+
+- name: Restart rabbitmq service
+  service:
+    name: rabbitmq-server
+    state: restarted
+  when: (rabbitmq_wrote_env_config.changed or rabbitmq_wrote_main_config.changed)
+  tags: rabbitmq
+
+- block:
+  - name: Rabbitmq | Stop node
+    shell: "rabbitmqctl -q stop_app"
+  - name: Rabbitmq | Reset node
+    shell: "rabbitmqctl -q force_reset"
+  - name: Rabbitmq | Start node
+    shell: "rabbitmqctl -q start_app"
+  when: (rabbitmq_reset)
+  tags: rabbitmq

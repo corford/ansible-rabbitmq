@@ -1,0 +1,6 @@
+{% if rabbitmq_bind_addr != "" %}
+ERL_EPMD_ADDRESS="{{ rabbitmq_bind_addr }}"
+NODE_IP_ADDRESS="{{ rabbitmq_bind_addr }}"
+{% endif %}
+NODE_PORT="{{ rabbitmq_bind_port }}"
+NODENAME="{{ rabbitmq_node_name }}@{{ ansible_hostname }}"

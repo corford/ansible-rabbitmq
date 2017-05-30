@@ -1,0 +1,34 @@
+[
+    {% if rabbitmq_mgmt_enable %}
+    {rabbitmq_management,
+        [
+            {listener, [
+                        {port, {{ rabbitmq_mgmt_bind_port }} }
+                        {% if rabbitmq_mgmt_bind_addr != "" %},{ip, "{{ rabbitmq_mgmt_bind_addr }}"}{% endif %}
+                        ]
+            }
+        ]
+    },
+    {% endif %}
+    {rabbit,
+
+            [
+                    {heartbeat, {{ rabbitmq_heartbeat_secs }} },
+                    {log_levels, [{ {{ rabbitmq_log_levels|join(',') }} }]},
+                    {tcp_listen_options,    [{{ rabbitmq_tcp_data }},
+
+                                            {packet,        {{ rabbitmq_tcp_packet }} },
+
+                                            {reuseaddr,     {{ rabbitmq_tcp_reuseaddr }} },
+
+                                            {backlog,       {{ rabbitmq_tcp_backlog }} },
+
+                                            {nodelay,       {{ rabbitmq_tcp_nodelay }} },
+
+                                            {keepalive,     {{ rabbitmq_tcp_keepalive }} }]}
+
+
+            ]
+
+    }
+].
