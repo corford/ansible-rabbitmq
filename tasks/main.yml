@@ -1,7 +1,7 @@
 ---
 - name: Install apt-transport-https
   apt:
-    pkg: "{{item}}"
+    name: "{{item}}"
     update-cache: yes
     cache_valid_time: 3600
   with_items:
@@ -19,7 +19,6 @@
   apt_repository:
     repo: "deb http://www.rabbitmq.com/debian/ testing main"
     state: present
-  register: rabbitmq_added_rmq
   tags: rabbitmq
 
 - name: Add official erlang repository signing key
@@ -32,18 +31,13 @@
   apt_repository:
     repo: "deb https://packages.erlang-solutions.com/debian {{ ansible_distribution_release }} contrib"
     state: present
-  register: rabbitmq_added_erlang
-  tags: rabbitmq
-
-- name: Apt update cache
-  apt:
-    update_cache: yes
-  when: (rabbitmq_added_rmq.changed or rabbitmq_added_erlang.changed)
   tags: rabbitmq
 
 - name: Install rabbitmq
   apt:
-    pkg: rabbitmq-server
+    name: rabbitmq-server
+    update-cache: yes
+    cache_valid_time: 3600    
     state: present
   tags: rabbitmq
 
