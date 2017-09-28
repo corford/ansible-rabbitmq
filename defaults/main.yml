@@ -1,7 +1,7 @@
 ---
 rabbitmq_reset: false # Set to true to reset the node during provisioning
 rabbitmq_node_name: "rabbit" # Note: @host will automatically be appended to this (full node name will be: rabbit@{{ ansible_hostname }})
-rabbitmq_bind_addr: "" # If empty, rabbitmq will bind to all addreses
+rabbitmq_bind_addr: "" # If empty, rabbitmq will bind to all addresses
 rabbitmq_bind_port: 5672
 rabbitmq_heartbeat_secs: 0 # Setting to zero disables heartbeats
 rabbitmq_log_levels: ['connection', 'info']
